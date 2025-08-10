@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mishprints — Collector Checklist</title>
+  <meta name="description" content="Track your Mishprints collection with images, checkboxes, and saved progress. Print a clean checklist anytime." />
+  <style>
+    :root{
+      --bg:#0f1115; --panel:#161a22; --panel-2:#0c0e13; --text:#e6e9ef; --muted:#a9b1c6;
+      --brand:#ffcf33; --accent:#ff5a5f; --good:#38d16a; --bad:#ff4d4f; --chip:#243047;
+      --card:#141821; --border:#232838; --focus:#5b9cff;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:linear-gradient(180deg,var(--bg),#0b0d12);color:var(--text);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial,sans-serif}
+    a{color:var(--brand);text-decoration:none}
+    header{position:sticky;top:0;z-index:50;background:rgba(15,17,21,.7);backdrop-filter:saturate(140%) blur(10px);border-bottom:1px solid var(--border)}
+    .wrap{max-width:1100px;margin:0 auto;padding:16px}
+    .topbar{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center}
+    h1{margin:0;font-size:20px;letter-spacing:-.2px}
+
+/* Keep the title row flat when the logo is added */
+.topbar > * { min-width: 0; }
+h1{ display:flex; align-items:center; gap:10px; white-space:nowrap; }
+h1 img{ height:32px; width:auto; display:block; }
+
+/* Make the progress badge sit perfectly centered */
+.badge{ line-height:1; align-self:center; }
+
+    .badge{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:999px;background:var(--chip);color:#c6d3f5;font-size:12px}
+    .controls{display:flex;flex-wrap:wrap;gap:10px}
+    .controls > *{background:var(--panel);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:10px}
+    select,input[type="search"]{appearance:none}
+    button{cursor:pointer}
+    .btn{transition:transform .05s ease,background .2s}
+    .btn:active{transform:translateY(1px)}
+    .btn-primary{background:linear-gradient(180deg,#22283a,#1b2031);border:1px solid var(--border)}
+    .btn-ghost{background:transparent;border:1px dashed var(--border)}
+
+    .progress{margin:14px 0 0;background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+    .progress-bar{height:10px;background:linear-gradient(90deg,var(--brand),#ff8a00)}
+    .progress-meta{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted);margin-top:6px}
+
+    main .wrap{padding-top:18px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
+    .card{
+      background:linear-gradient(180deg,var(--card),var(--panel-2));border:1px solid var(--border);border-radius:16px;overflow:hidden;position:relative;display:flex;flex-direction:column
+    }
+    .thumb{aspect-ratio:3/4;background:#0a0c11;display:grid;place-items:center;border-bottom:1px solid var(--border)}
+    .thumb img{max-width:100%;max-height:100%;object-fit:contain}
+    .content{padding:10px 12px;display:grid;gap:8px}
+    .row{display:flex;justify-content:space-between;gap:8px;align-items:center}
+    .name{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .rarity{font-size:12px;padding:2px 8px;border-radius:999px;background:#1d2330;color:#cbd5ff;border:1px solid var(--border)}
+    /* New rarity colors */
+.rarity.C  { background: white; color: black; }
+.rarity.U  { background: green; color: white; }
+.rarity.R  { background: blue; color: white; }
+.rarity.HR { background: gold; color: black; }
+.rarity.MP { background: purple; color: white; }
+.rarity.SR { background: red; color: white; }
+.rarity.P  { 
+  background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet); 
+  color: white;
+}
+    .owned{display:inline-flex;gap:8px;align-items:center}
+    .owned input{width:18px;height:18px}
+    .card.owned{outline:2px solid rgba(56,209,106,.55)}
+
+    /* Filters and layout */
+    .filters{display:flex;gap:8px;flex-wrap:wrap}
+    .filters .chip{cursor:pointer;padding:6px 10px;border-radius:999px;border:1px solid var(--border);color: white; background:var(--panel)}
+    .filters .chip.active{background:#1f293b}
+
+    /* Print styles */
+    @media print {
+      header, .nonprint {display:none !important}
+      body{background:#fff;color:#000}
+      .wrap{max-width:none}
+      .grid{grid-template-columns:repeat(3,1fr);gap:8px}
+      .card{border:1px solid #000;border-radius:6px}
+      .thumb{display:none}
+      .content{padding:8px}
+      .rarity{border:1px solid #000;background:#fff;color:#000}
+    }
+    /* Lightbox */
+.lightbox {
+  position: fixed; inset: 0; display: none; place-items: center;
+  background: rgba(0,0,0,.75); z-index: 1000; padding: 24px;
+}
+.lightbox.open { display: grid; }
+.lightbox-card {
+  background: #0f1115; border:1px solid var(--border); border-radius:16px;
+  max-width: min(92vw, 900px); width: fit-content; overflow:hidden;
+  box-shadow: 0 10px 40px rgba(0,0,0,.6);
+}
+.lightbox-head {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:10px 12px; border-bottom:1px solid var(--border);
+}
+.lightbox-title { font-weight:600 }
+.lightbox-body { background:#0a0c11; display:grid; place-items:center; }
+.lightbox-body img { max-width: 90vw; max-height: 78vh; object-fit: contain; display:block }
+.lightbox-close {
+  background:transparent; border:0; color:var(--text); font-size:20px; cursor:pointer;
+}
+
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="topbar">
+        <h1>
+  <img src="mishprint_logo.png" alt="Mishprints Logo" style="height:40px; vertical-align:middle; margin-right:8px;">
+  Collector Checklist
+</h1>
+        <div class="badge" title="Progress across this device">
+          <span id="progressCount">0 of 0</span>
+        </div>
+        <div class="controls nonprint">
+          <input id="search" type="search" placeholder="Search cards" aria-label="Search cards" />
+          <select id="rarityFilter" aria-label="Filter by rarity">
+            <option value="">All rarities</option>
+            <option value="C">Common</option>
+            <option value="U">Uncommon</option>
+            <option value="R">Rare</option>
+            <option value="HR">Hype Rare</option>
+            <option value="SR">Secret Rare</option>
+            <option value="MP">Mishprint Variant</option>
+          </select>
+          <select id="ownedFilter" aria-label="Filter by ownership">
+            <option value="">All</option>
+            <option value="owned">Owned</option>
+            <option value="unowned">Unowned</option>
+          </select>
+          <button class="btn btn-primary" id="printBtn">Print</button>
+          <button class="btn btn-ghost" id="exportBtn" title="Export your progress to move to a new device">Export</button>
+          <input id="importInput" type="file" accept="application/json" hidden />
+          <button class="btn btn-ghost" id="importBtn" title="Import progress from a saved file">Import</button>
+          <button class="btn btn-ghost" id="resetBtn" title="Clear progress on this device">Reset</button>
+        </div>
+      </div>
+      <div class="progress" aria-hidden="true">
+        <div class="progress-bar" id="progressBar" style="width:0%"></div>
+      </div>
+      <div class="progress-meta"><span id="setName">Based Set</span><span id="progressPct">0%</span></div>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap">
+      <div class="filters nonprint" id="quickFilters" aria-label="Quick rarity filters" style="margin-bottom:10px"></div>
+      <section class="grid" id="grid" aria-live="polite"></section>
+      <p class="nonprint" style="margin-top:18px;color:var(--muted);font-size:13px">
+        Progress saves to your browser on this device. Use Export and Import to move between devices.
+      </p>
+    </div>
+  </main>
+
+<script>
+// ======== CONFIG ========
+// Update these for each set release. Bump SET_VERSION to force a fresh checklist when the set changes.
+const SET_ID = "mishprints-based";          // machine id for the set
+const SET_TITLE = "Mishprints — Based Set";  // user visible name
+const SET_VERSION = 1;                        // increment if card list changes
+
+// Minimal sample data. Replace with your real list. Image URLs can be absolute or relative.
+// Fields: id, name, rarity [C,U,R,HR,SR,MP], img
+const CARDS = [
+  { id: "01", name: "Balbuzor", rarity: "C", img: "img/01-Balbuzor.jpg" },
+  { id: "01A", name: "Balbuzor", rarity: "MP", img: "img/01A-Balbuzor.png" },
+  { id: "02", name: "Allen Iverson", rarity: "U", img: "img/02-Allen-Iverson.jpg" },
+  { id: "03", name: "Grumpfern", rarity: "HR", img: "img/03-Grumpfern.jpg" },
+  { id: "04", name: "Young Charl", rarity: "C", img: "img/04-Young-Charl.jpg" },
+  { id: "05", name: "Hot Charl", rarity: "U", img: "img/05-Hot-Charl.jpg" },
+  { id: "06", name: "Elder Charl", rarity: "HR", img: "img/06-Elder-Charl.jpg" },
+  { id: "06A", name: "Elder Charl", rarity: "MP", img: "img/06A-Elder-Charl.jpg" },
+  { id: "07", name: "Splortl", rarity: "C", img: "img/07-Splortl.jpg" },
+  { id: "08", name: "Worlwor3", rarity: "U", img: "img/08-Worlwor3.jpg" },
+  { id: "09", name: "Boilturts", rarity: "HR", img: "img/09-Boilturts.jpg" },
+  { id: "10", name: "Abba", rarity: "C", img: "img/10-Abba.jpg" },
+  { id: "11", name: "Kadabba", rarity: "U", img: "img/11-Kadabba.jpg" },
+  { id: "12", name: "Alexcraznam", rarity: "HR", img: "img/12-Alexcraznam.jpg" },
+  { id: "13", name: "Magik Jonson", rarity: "C", img: "img/13-Magik-Jonson.jpg" },
+  { id: "14", name: "Gary", rarity: "HR", img: "img/14-Gary.jpg" },
+  { id: "15", name: "Mapop", rarity: "C", img: "img/15-Mapop.jpg" },
+  { id: "16", name: "Majoke", rarity: "U", img: "img/16-Majoke.jpg" },
+  { id: "17", name: "Magoro", rarity: "HR", img: "img/17-Magoro.jpg" },
+  { id: "18", name: "PewPew", rarity: "HR", img: "img/18-PewPew.jpg" },
+  { id: "18A", name: "PewPew", rarity: "MP", img: "img/18A-PewPew.jpg" },
+  { id: "19", name: "Sadshoe", rarity: "C", img: "img/19-Sadshoe.jpg" },
+  { id: "20", name: "Ahchu", rarity: "C", img: "img/20-Hahchu.jpg" },
+  { id: "20A", name: "Ahchu", rarity: "MP", img: "img/20A-Hahchu.jpg" },
+  { id: "21", name: "Cheeksqueek", rarity: "R", img: "img/21-Cheeksqueek.jpg" },
+  { id: "22", name: "Yellburd", rarity: "HR", img: "img/22-Yellburd.jpg" },
+  { id: "23", name: "Hip4chan", rarity: "R", img: "img/23-Hip4chan.jpg" },
+  { id: "24", name: "Jonx", rarity: "R", img: "img/24-Jonx.jpg" },
+  { id: "25", name: "Kovid", rarity: "C", img: "img/25-Kovid.jpg" },
+  { id: "26", name: "Gatsby", rarity: "C", img: "img/26-Gatsby.jpg" },
+  { id: "27", name: "Haungry", rarity: "U", img: "img/27-Haungry.jpg" },
+  { id: "28", name: "Widdle", rarity: "C", img: "img/28-Widdle.jpg" },
+  { id: "28A", name: "Widdle", rarity: "MP", img: "img/28A-Widdle.jpg" },
+  { id: "29", name: "Kakoo", rarity: "U", img: "img/29-Kakoo.jpg" },
+  { id: "30", name: "Beedul", rarity: "R", img: "img/30-Beedul.jpg" },
+  { id: "31", name: "Screwbaby", rarity: "C", img: "img/31-Screwbaby.jpg" },
+  { id: "32", name: "Screwdady", rarity: "R", img: "img/32-Screwdady.jpg" },
+  { id: "33", name: "Cwispup", rarity: "C", img: "img/33-Cwispup.jpg" },
+  { id: "34", name: "Pardypup", rarity: "R", img: "img/34-Pardypup.jpg" },
+  { id: "35", name: "Mogmor", rarity: "R", img: "img/35-Mogmor.jpg" },
+  { id: "36", name: "Dripini Asasini", rarity: "C", img: "img/36-Dripini-Asasini.jpg" },
+  { id: "37", name: "Niky Airs", rarity: "U", img: "img/37-Niky-Airs.jpg" },
+  { id: "38", name: "Dorganlite", rarity: "HR", img: "img/38-Dorganlite.jpg" },
+  { id: "39", name: "Ongix", rarity: "R", img: "img/39-Ongix.jpg" },
+  { id: "40", name: "Choncee", rarity: "R", img: "img/40-Choncee.jpg" },
+  { id: "41", name: "Larry", rarity: "C", img: "img/41-Larry.jpg" },
+  { id: "42", name: "Snarl Jr.", rarity: "C", img: "img/42-Snarl-Jr.jpg" },
+  { id: "43", name: "Barknye", rarity: "R", img: "img/43-Barknye.jpg" },
+  { id: "44", name: "Spinyou", rarity: "C", img: "img/44-Spinyou.jpg" },
+  { id: "45", name: "Spinme", rarity: "U", img: "img/45-Spinme.jpg" },
+  { id: "46", name: "Wi-Fight 2", rarity: "R", img: "img/46-Wi-Fight-2.jpg" },
+  { id: "46A", name: "Wi-Fight 2", rarity: "MP", img: "img/46A-Wi-Fight-2.jpg" },
+  { id: "47", name: "Patertot", rarity: "C", img: "img/47-Patertot.jpg" },
+  { id: "48", name: "Smolspike", rarity: "C", img: "img/48-Smolspike.jpg" },
+  { id: "49", name: "Stabarino", rarity: "U", img: "img/49-Stabarino.jpg" },
+  { id: "50", name: "Needadink", rarity: "R", img: "img/50-Needadink.jpg" },
+  { id: "51", name: "Wigglepie", rarity: "C", img: "img/51-Wigglepie.jpg" },
+  { id: "52", name: "SworlFist", rarity: "U", img: "img/52-SworlFist.jpg" },
+  { id: "53", name: "Swolliwag", rarity: "R", img: "img/53-Swolliwag.jpg" },
+  { id: "54", name: "Bobbit", rarity: "C", img: "img/54-Bobbit.jpg" },
+  { id: "55", name: "Bobbithree", rarity: "U", img: "img/55-Bobbithree.jpg" },
+  { id: "56", name: "Tunderbruh", rarity: "C", img: "img/56-Tunderbruh.jpg" },
+  { id: "57", name: "(NEG) Blowdorb", rarity: "C", img: "img/57-Blowdorb.jpg" },
+  { id: "58", name: "(POS) Blowdorb", rarity: "R", img: "img/58-Blowdorb.jpg" },
+  { id: "58A", name: "Blowdorb", rarity: "MP", img: "img/58A-Blowdorb.jpg" },
+  { id: "59", name: "Piggy", rarity: "C", img: "img/59-Piggy.jpg" },
+  { id: "60", name: "Piggypotato", rarity: "U", img: "img/60-Piggypotato.jpg" },
+  { id: "61", name: "Piggyacht", rarity: "R", img: "img/61-Piggyacht.jpg" },
+  { id: "62", name: "GangGang", rarity: "HR", img: "img/62-GangGang.jpg" },
+  { id: "62A", name: "GangGang", rarity: "MP", img: "img/62A-GangGang.jpg" },
+  { id: "63", name: "Mama Jonx", rarity: "C", img: "img/63-Mama-Jonx.jpg" },
+  { id: "64", name: "Frostbean", rarity: "C", img: "img/64-Frostbean.jpg" },
+  { id: "65", name: "Iceloaf", rarity: "U", img: "img/65-Iceloaf.jpg" },
+  { id: "66", name: "Chomper Dan", rarity: "U", img: "img/66-Chomper-Dan.jpg" },
+  { id: "67", name: "DumbenDumber", rarity: "C", img: "img/67-DumbenDumber.jpg" },
+  { id: "68", name: "Snorbo", rarity: "C", img: "img/68-Snorbo.jpg" },
+  { id: "69", name: "DananDan", rarity: "C", img: "img/69-DananDan.jpg" },
+  { id: "70", name: "Pasketti", rarity: "C", img: "img/70-Pasketti.jpg" },
+  { id: "71", name: "MishingYes", rarity: "SR", img: "img/71-MishingYes.jpg" },
+  { id: "0101", name: "Pew", rarity: "P", img: "img/0101-Pew.jpg" },
+  { id: "0202", name: "Oh-No", rarity: "P", img: "img/0202-Oh-No.jpg" }
+];
+
+
+// ======== STATE ========
+const STORAGE_KEY = `mishprints:${SET_ID}:v${SET_VERSION}`;
+let owned = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"));
+
+// ======== DOM ========
+const gridEl = document.getElementById("grid");
+const searchEl = document.getElementById("search");
+const rarityEl = document.getElementById("rarityFilter");
+const ownedEl = document.getElementById("ownedFilter");
+const progressBar = document.getElementById("progressBar");
+const progressCount = document.getElementById("progressCount");
+const progressPct = document.getElementById("progressPct");
+const setName = document.getElementById("setName");
+const quickFilters = document.getElementById("quickFilters");
+
+// ======== INIT ========
+function init(){
+  document.title = `${SET_TITLE} — Checklist`;
+  setName.textContent = SET_TITLE;
+  buildQuickFilters();
+  render();
+}
+
+function buildQuickFilters(){
+  const rarities = [
+    ["All", ""],
+    ["Common", "C"],
+    ["Uncommon", "U"],
+    ["Rare", "R"],
+    ["Hype Rare", "HR"],
+    ["Secret Rare", "SR"],
+    ["Mishprint", "MP"],
+  ];
+  rarities.forEach(([label,val], i)=>{
+    const c = document.createElement("button");
+    c.className = `chip${i===0?" active":""}`;
+    c.textContent = label;
+    c.addEventListener("click", ()=>{
+      [...quickFilters.children].forEach(x=>x.classList.remove("active"));
+      c.classList.add("active");
+      rarityEl.value = val; render();
+    });
+    quickFilters.appendChild(c);
+  });
+}
+
+function cardMatches(card){
+  const q = searchEl.value.trim().toLowerCase();
+  const r = rarityEl.value;
+  const o = ownedEl.value;
+  if(q && !(`${card.name}`.toLowerCase().includes(q) || `${card.id}`.includes(q))) return false;
+  if(r && card.rarity !== r) return false;
+  if(o === "owned" && !owned.has(card.id)) return false;
+  if(o === "unowned" && owned.has(card.id)) return false;
+  return true;
+}
+
+function render(){
+  gridEl.innerHTML = "";
+  const list = CARDS.filter(cardMatches);
+  for(const card of list){
+    const el = document.createElement("article");
+    el.className = `card${owned.has(card.id)?" owned":""}`;
+
+    const thumb = document.createElement("div");
+    thumb.className = "thumb";
+    const img = document.createElement("img");
+    img.loading = "lazy"; img.alt = card.name; img.src = card.img;
+    // make image clickable → open lightbox
+img.style.cursor = "zoom-in";
+img.addEventListener("click", (e) => {
+  e.stopPropagation();            // don't toggle the checkbox/label
+  window.__openLightbox(card);    // opens the viewer with this card
+});
+
+    thumb.appendChild(img);
+
+    const content = document.createElement("div");
+    content.className = "content";
+
+    const row1 = document.createElement("div"); row1.className = "row";
+    const name = document.createElement("div"); name.className = "name"; name.textContent = `${card.id} • ${card.name}`;
+    const rarity = document.createElement("div"); rarity.className = `rarity ${card.rarity}`; rarity.textContent = card.rarity;
+    row1.append(name, rarity);
+
+    const row2 = document.createElement("label"); row2.className = "row owned"; row2.setAttribute("for", `owned-${card.id}`);
+    const cb = document.createElement("input"); cb.type = "checkbox"; cb.id = `owned-${card.id}`; cb.checked = owned.has(card.id);
+    cb.addEventListener("change", ()=> toggle(card.id));
+    const span = document.createElement("span"); span.textContent = cb.checked?"Owned":"Not owned";
+    cb.addEventListener("change", ()=>{ span.textContent = cb.checked?"Owned":"Not owned"; el.classList.toggle("owned", cb.checked); });
+    row2.append(cb, span);
+
+    content.append(row1,row2);
+    el.append(thumb,content);
+    gridEl.appendChild(el);
+  }
+  updateProgress();
+}
+
+function toggle(id){
+  if(owned.has(id)) owned.delete(id); else owned.add(id);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify([...owned]));
+  updateProgress();
+}
+
+function updateProgress(){
+  const total = CARDS.length;
+  const have = owned.size;
+  progressBar.style.width = total? `${Math.round(have/total*100)}%` : "0%";
+  progressCount.textContent = `${have} of ${total}`;
+  progressPct.textContent = total? `${Math.round(have/total*100)}%` : "0%";
+}
+
+// ======== EXPORT / IMPORT / PRINT / RESET ========
+printBtn.addEventListener("click", ()=> window.print());
+exportBtn.addEventListener("click", ()=>{
+  const payload = {
+    id: SET_ID, version: SET_VERSION, owned: [...owned]
+  };
+  const blob = new Blob([JSON.stringify(payload,null,2)], {type: "application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `${SET_ID}-progress.json`; a.click();
+  URL.revokeObjectURL(url);
+});
+importBtn.addEventListener("click", ()=> importInput.click());
+importInput.addEventListener("change", async (e)=>{
+  const file = e.target.files[0]; if(!file) return;
+  try{
+    const text = await file.text();
+    const data = JSON.parse(text);
+    if(data.id !== SET_ID){
+      if(!confirm("This file is for a different set. Import anyway?")) return;
+    }
+    owned = new Set(data.owned || []);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([...owned]));
+    render();
+    alert("Import complete");
+  }catch(err){
+    alert("Could not import file");
+  } finally { e.target.value = ""; }
+});
+resetBtn.addEventListener("click", ()=>{
+  if(confirm("Clear progress on this device?")){
+    localStorage.removeItem(STORAGE_KEY);
+    owned = new Set();
+    render();
+  }
+});
+
+// Live filters
+searchEl.addEventListener("input", render);
+rarityEl.addEventListener("change", render);
+ownedEl.addEventListener("change", render);
+
+init();
+// Lightbox logic
+const lightbox = document.getElementById("lightbox");
+const lightboxImg = document.getElementById("lightboxImg");
+const lightboxTitle = document.getElementById("lightboxTitle");
+const lightboxClose = document.getElementById("lightboxClose");
+
+// Open lightbox on card click
+document.addEventListener("click", (e) => {
+  const card = e.target.closest(".card");
+  if (card) {
+    const img = card.querySelector("img");
+    if (img) {
+      lightboxImg.src = img.src;
+      lightboxTitle.textContent = card.textContent.trim() || "Card";
+      lightbox.classList.add("open");
+      lightbox.setAttribute("aria-hidden", "false");
+    }
+  }
+});
+
+// Close lightbox
+lightboxClose.addEventListener("click", () => {
+  lightbox.classList.remove("open");
+  lightbox.setAttribute("aria-hidden", "true");
+});
+
+// Close on background click
+lightbox.addEventListener("click", (e) => {
+  if (e.target === lightbox) {
+    lightbox.classList.remove("open");
+    lightbox.setAttribute("aria-hidden", "true");
+  }
+});
+
+// Optional: close on ESC key
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && lightbox.classList.contains("open")) {
+    lightbox.classList.remove("open");
+    lightbox.setAttribute("aria-hidden", "true");
+  }
+});
+
+</script>
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" aria-hidden="true" role="dialog" aria-label="Card image viewer">
+  <div class="lightbox-card" role="document">
+    <div class="lightbox-head">
+      <div class="lightbox-title" id="lightboxTitle">—</div>
+      <button class="lightbox-close" id="lightboxClose" aria-label="Close">✕</button>
+    </div>
+    <div class="lightbox-body">
+      <img id="lightboxImg" alt="" />
+    </div>
+  </div>
+</div>
+<script>
+// grab lightbox elements (now they exist)
+const lightbox = document.getElementById("lightbox");
+const lightboxImg = document.getElementById("lightboxImg");
+const lightboxTitle = document.getElementById("lightboxTitle");
+const lightboxClose = document.getElementById("lightboxClose");
+
+function openLightbox(card){
+  lightboxImg.src = card.img;
+  lightboxImg.alt = card.name;
+  lightboxTitle.textContent = `${card.id} • ${card.name}`;
+  lightbox.classList.add("open");
+  lightbox.setAttribute("aria-hidden","false");
+}
+function closeLightbox(){
+  lightbox.classList.remove("open");
+  lightbox.setAttribute("aria-hidden","true");
+  lightboxImg.src = "";
+}
+
+// close actions
+lightbox.addEventListener("click", (e)=>{ if(e.target === lightbox) closeLightbox(); });
+lightboxClose.addEventListener("click", closeLightbox);
+document.addEventListener("keydown", (e)=>{ if(e.key === "Escape") closeLightbox(); });
+
+// expose for render()
+window.__openLightbox = openLightbox;
+</script>
+
+</body>
+</html>
