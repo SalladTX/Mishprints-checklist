@@ -105,6 +105,49 @@ h1 img{ height:32px; width:auto; display:block; }
 .lightbox-close {
   background:transparent; border:0; color:var(--text); font-size:20px; cursor:pointer;
 }
+/* ---------- Mobile layout fixes ---------- */
+@media (max-width: 640px){
+  /* Make the header stack instead of cramming everything in one row */
+  .topbar{
+    display:grid;
+    grid-template-columns: 1fr;   /* single column */
+    row-gap: 10px;
+    align-items: center;
+  }
+
+  /* Title row: smaller logo, keep on one line */
+  h1{ display:flex; align-items:center; gap:8px; white-space:nowrap; }
+  h1 img{ height:24px; width:auto; display:block; }
+
+  /* Progress badge goes under the title, left-aligned */
+  .badge{ justify-self:start; order:2; line-height:1; }
+
+  /* Search + selects full-width */
+  #search{ width:100%; }
+  #rarityFilter, #ownedFilter{ width:100%; }
+
+  /* Action buttons wrap to two columns nicely */
+  .controls{
+    display:grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap:8px;
+  }
+  .controls > *{ width:100%; }           /* buttons/selects fill their grid cell */
+
+  /* Quick filters: allow horizontal scroll instead of wrapping off-screen */
+  .filters{
+    overflow-x:auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;                 /* room for iOS scrollbar */
+  }
+  .filters .chip{ display:inline-flex; }  /* keep chips side‑by‑side in the scroller */
+}
+
+/* Slightly tighter at very small widths */
+@media (max-width: 400px){
+  h1{ font-size:18px; }
+  h1 img{ height:22px; }
+}
 
   </style>
 </head>
